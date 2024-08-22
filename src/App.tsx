@@ -4,7 +4,7 @@ import './App.css'
 function App() {
 
   return (
-   <main className="main">task management app</main>
+   <main className="">task management app</main>
         
   )
 }
