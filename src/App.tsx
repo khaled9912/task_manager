@@ -1,7 +1,13 @@
+import React from 'react';
+import TaskList from './components/TaskList';
 import './App.css';
 
-function App() {
-  return <main className="">task management app</main>;
-}
+const App: React.FC = () => {
+  return (
+    <div className="min-h-screen bg-gray-100 flex justify-center items-center">
+      <TaskList />
+    </div>
+  );
+};
 
 export default App;
