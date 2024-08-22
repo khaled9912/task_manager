@@ -4,7 +4,7 @@ interface TaskProps {
   task: {
     id: number;
     description: string;
-    status: 'Not Started' | 'In Progress' | 'Finished';
+    status: string;
   };
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;

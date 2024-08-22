@@ -1,59 +1,121 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Task from './Task';
 
 interface TaskType {
   id: number;
   description: string;
-  status: 'Not Started' | 'In Progress' | 'Finished';
+  status: string;
 }
 
 const TaskList: React.FC = () => {
-  const [tasks, setTasks] = useState<TaskType[]>([
-    { id: 1, description: 'Task 1', status: 'Not Started' },
-    { id: 2, description: 'Task 2', status: 'In Progress' },
-    { id: 3, description: 'Task 3', status: 'Finished' },
+  const [tasks, setTasks] = useState<TaskType[]>([]);
+  const [newTaskDescription, setNewTaskDescription] = useState<string>('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('Not Started');
+  const [statuses, setStatuses] = useState<string[]>([
+    'Not Started',
+    'In Progress',
+    'Finished',
   ]);
-
-  const [newTask, setNewTask] = useState<string>('');
   const [editTaskId, setEditTaskId] = useState<number | null>(null);
   const [filter, setFilter] = useState<string>('All');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const tasksPerPage = 4;
 
+  // Load tasks and statuses from localStorage on mount
+  useEffect(() => {
+    const cachedTasks = localStorage.getItem('tasks');
+    const cachedStatuses = localStorage.getItem('statuses');
+
+    if (cachedTasks) {
+      setTasks(JSON.parse(cachedTasks));
+    }
+    if (cachedStatuses) {
+      setStatuses(JSON.parse(cachedStatuses));
+    }
+  }, []);
+
+  // Save tasks and statuses to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    localStorage.setItem('statuses', JSON.stringify(statuses));
+  }, [tasks, statuses]);
+
+  // Add a new task
   const handleAddTask = () => {
-    if (newTask.trim() === '') return;
+    if (newTaskDescription.trim() === '' || selectedStatus.trim() === '')
+      return;
 
-    setTasks([
-      ...tasks,
-      { id: Date.now(), description: newTask, status: 'Not Started' },
-    ]);
-    setNewTask('');
+    const newTask = {
+      id: Date.now(),
+      description: newTaskDescription,
+      status: selectedStatus,
+    };
+    setTasks([...tasks, newTask]);
+    setNewTaskDescription('');
+    setSelectedStatus('Not Started');
   };
 
+  // Edit a task
   const handleEditTask = (id: number) => {
     const taskToEdit = tasks.find((task) => task.id === id);
     if (taskToEdit) {
-      setNewTask(taskToEdit.description);
+      setNewTaskDescription(taskToEdit.description);
+      setSelectedStatus(taskToEdit.status);
       setEditTaskId(id);
     }
   };
 
+  // Update a task
   const handleUpdateTask = () => {
-    if (editTaskId && newTask.trim() !== '') {
+    if (
+      editTaskId &&
+      newTaskDescription.trim() !== '' &&
+      selectedStatus.trim() !== ''
+    ) {
       setTasks(
         tasks.map((task) =>
-          task.id === editTaskId ? { ...task, description: newTask } : task
+          task.id === editTaskId
+            ? {
+                ...task,
+                description: newTaskDescription,
+                status: selectedStatus,
+              }
+            : task
         )
       );
-      setNewTask('');
+      setNewTaskDescription('');
+      setSelectedStatus('Not Started');
       setEditTaskId(null);
     }
   };
 
+  // Delete a task
   const handleDeleteTask = (id: number) => {
     setTasks(tasks.filter((task) => task.id !== id));
   };
 
+  // Sort tasks
+  const handleSort = () => {
+    const sortedTasks = [...tasks].sort((a, b) => {
+      const compare = a.description.localeCompare(b.description);
+      return sortOrder === 'asc' ? compare : -compare;
+    });
+    setTasks(sortedTasks);
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+  };
+
+  // Filter tasks based on the selected filter
   const filteredTasks =
     filter === 'All' ? tasks : tasks.filter((task) => task.status === filter);
+
+  // Paginate filtered tasks
+  const paginatedTasks = filteredTasks.slice(
+    (currentPage - 1) * tasksPerPage,
+    currentPage * tasksPerPage
+  );
+
+  const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
 
   return (
     <div className="container mx-auto p-4">
@@ -62,11 +124,22 @@ const TaskList: React.FC = () => {
       <div className="mb-4">
         <input
           type="text"
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
+          value={newTaskDescription}
+          onChange={(e) => setNewTaskDescription(e.target.value)}
           className="p-2 border rounded w-full mb-2"
-          placeholder="Add a new task"
+          placeholder="Task Description"
         />
+        <select
+          value={selectedStatus}
+          onChange={(e) => setSelectedStatus(e.target.value)}
+          className="p-2 border rounded w-full mb-2"
+        >
+          {statuses.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
+        </select>
         <button
           onClick={editTaskId ? handleUpdateTask : handleAddTask}
           className="w-full p-2 bg-blue-500 text-white rounded"
@@ -82,14 +155,20 @@ const TaskList: React.FC = () => {
           className="p-2 border rounded"
         >
           <option value="All">All</option>
-          <option value="Not Started">Not Started</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Finished">Finished</option>
+          {statuses.map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
         </select>
+
+        <button onClick={handleSort} className="p-2 bg-gray-200 rounded">
+          Sort {sortOrder === 'asc' ? '↓' : '↑'}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredTasks.map((task) => (
+        {paginatedTasks.map((task) => (
           <Task
             key={task.id}
             task={task}
@@ -98,6 +177,30 @@ const TaskList: React.FC = () => {
           />
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            className="p-2 bg-gray-200 rounded mx-2"
+            disabled={currentPage === 1}
+          >
+            Previous
+          </button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            className="p-2 bg-gray-200 rounded mx-2"
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };
