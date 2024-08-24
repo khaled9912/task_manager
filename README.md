@@ -7,7 +7,8 @@
 3. 🔋 [Features](#features)
 4. 🤸 [Quick Start](#quick-start)
 5. 🕸️ [LiveDemo](#LiveDemo)
-6. 🕸️ [Code Snippets to Copy](#snippets)
+6. 🕸️ [DemoLogin](#DemoLogin)
+7. 🕸️ [Code Snippets to Copy](#snippets)
 
 ## <a name="introduction">🤖 Introduction</a>
 
@@ -83,6 +84,11 @@ Open [http://localhost:5173](http://localhost:5173) in your browser to view the 
 ## <a name="LiveDemo">🕸️ LiveDemo</a>
 
 - [LiveDemo](https://t-managment.netlify.app/)
+
+## <a name="DemoLogin">🕸️Demo Login</a>
+
+- username is "user"
+- password is "password"
 
 ## <a name="snippets">🕸️ Snippets</a>
 
