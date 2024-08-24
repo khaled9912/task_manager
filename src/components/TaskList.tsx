@@ -35,12 +35,6 @@ const TaskList: React.FC = () => {
     }
   }, []);
 
-  // Save tasks and statuses to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-    localStorage.setItem('statuses', JSON.stringify(statuses));
-  }, [tasks, statuses]);
-
   // Add a new task
   const handleAddTask = () => {
     if (newTaskDescription.trim() === '' || selectedStatus.trim() === '')
@@ -51,7 +45,9 @@ const TaskList: React.FC = () => {
       description: newTaskDescription,
       status: selectedStatus,
     };
-    setTasks([...tasks, newTask]);
+    const updatedTasks = [...tasks, newTask];
+    setTasks(updatedTasks);
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks)); // Save to local storage
     setNewTaskDescription('');
     setSelectedStatus('Not Started');
   };
@@ -73,17 +69,17 @@ const TaskList: React.FC = () => {
       newTaskDescription.trim() !== '' &&
       selectedStatus.trim() !== ''
     ) {
-      setTasks(
-        tasks.map((task) =>
-          task.id === editTaskId
-            ? {
-                ...task,
-                description: newTaskDescription,
-                status: selectedStatus,
-              }
-            : task
-        )
+      const updatedTasks = tasks.map((task) =>
+        task.id === editTaskId
+          ? {
+              ...task,
+              description: newTaskDescription,
+              status: selectedStatus,
+            }
+          : task
       );
+      setTasks(updatedTasks);
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks)); // Save to local storage
       setNewTaskDescription('');
       setSelectedStatus('Not Started');
       setEditTaskId(null);
@@ -92,7 +88,9 @@ const TaskList: React.FC = () => {
 
   // Delete a task
   const handleDeleteTask = (id: number) => {
-    setTasks(tasks.filter((task) => task.id !== id));
+    const updatedTasks = tasks.filter((task) => task.id !== id);
+    setTasks(updatedTasks);
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks)); // Save to local storage
   };
 
   // Sort tasks
@@ -119,8 +117,6 @@ const TaskList: React.FC = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold text-center mb-6">Task List</h1>
-
       <div className="mb-4">
         <input
           type="text"
